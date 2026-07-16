@@ -1,0 +1,96 @@
+timeStamp,elapsed,label,success,threadName,detail
+1784183996443,78932,Checkout Flow E2E (whole test),true,worker-0,OK
+1784184002675,84922,Checkout Flow E2E (whole test),true,worker-3,OK
+1784184048553,130904,Checkout Flow E2E (whole test),true,worker-2,OK
+1784184050737,132941,Checkout Flow E2E (whole test),false,worker-8,Error: Flow did not complete within 3 attempts (repeatedly hit the gender-gate modal bug)
+1784184062930,145400,Checkout Flow E2E (whole test),true,worker-4,OK
+1784184071516,153964,Checkout Flow E2E (whole test),true,worker-5,OK
+1784184080872,163149,Checkout Flow E2E (whole test),true,worker-9,OK
+1784184084833,167245,Checkout Flow E2E (whole test),true,worker-7,OK
+1784184095797,178225,Checkout Flow E2E (whole test),true,worker-6,OK
+1784184097716,180066,Checkout Flow E2E (whole test),false,worker-1,[31mTest timeout of 180000ms exceeded.[39m
+1784183933989,15413,1. Landing Page + Add to Cart,true,worker-0,OK
+1784183937125,18475,1. Landing Page + Add to Cart,true,worker-8,OK
+1784183937374,18734,1. Landing Page + Add to Cart,true,worker-9,OK
+1784183938660,19949,1. Landing Page + Add to Cart,true,worker-1,OK
+1784183941072,22485,1. Landing Page + Add to Cart,true,worker-3,OK
+1784183944896,10907,2. Basic User Info (reasons + email),true,worker-0,OK
+1784183946374,27832,1. Landing Page + Add to Cart,true,worker-7,OK
+1784183947807,10435,2. Basic User Info (reasons + email),true,worker-9,OK
+1784183950001,5106,3. Personal Info,true,worker-0,OK
+1784183950046,12919,2. Basic User Info (reasons + email),true,worker-8,OK
+1784183950064,8987,2. Basic User Info (reasons + email),true,worker-3,OK
+1784183954549,35866,1. Landing Page + Add to Cart,true,worker-2,OK
+1784183954889,4887,4. Health History,true,worker-0,OK
+1784183954972,36358,1. Landing Page + Add to Cart,true,worker-4,OK
+1784183955365,8987,2. Basic User Info (reasons + email),true,worker-7,OK
+1784183955430,5368,3. Personal Info,true,worker-3,OK
+1784183955442,5385,3. Personal Info,true,worker-8,OK
+1784183956745,18077,2. Basic User Info (reasons + email),true,worker-1,OK
+1784183957916,10093,3. Personal Info,true,worker-9,OK
+1784183958167,39544,1. Landing Page + Add to Cart,true,worker-5,OK
+1784183959267,3901,3. Personal Info,true,worker-7,OK
+1784183959718,4288,4. Health History,true,worker-3,OK
+1784183960208,4765,4. Health History,true,worker-8,OK
+1784183960419,3676,3. Personal Info,true,worker-1,OK
+1784183967886,9984,4. Health History,true,worker-9,OK
+1784183969020,14045,2. Basic User Info (reasons + email),true,worker-4,OK
+1784183973578,18689,5. Checkout,true,worker-0,OK
+1784183973710,19158,2. Basic User Info (reasons + email),true,worker-2,OK
+1784183973806,55240,1. Landing Page + Add to Cart,true,worker-6,OK
+1784183976897,16482,4. Health History,true,worker-1,OK
+1784183977083,18912,2. Basic User Info (reasons + email),true,worker-5,OK
+1784183979872,20153,5. Checkout,true,worker-3,OK
+1784183989214,29948,4. Health History,true,worker-7,OK
+1784183993655,20073,6. Upload ID,true,worker-0,OK
+1784183995577,27690,5. Checkout,true,worker-9,OK
+1784183995756,22047,3. Personal Info,true,worker-2,OK
+1784183996381,2720,7. Create Password,true,worker-0,OK
+1784183997415,37209,5. Checkout,true,worker-8,OK
+1784183998193,29168,3. Personal Info,true,worker-4,OK
+1784183999765,22686,1. Landing Page + Add to Cart,true,worker-5,OK
+1784184000660,20788,6. Upload ID,true,worker-3,OK
+1784184002633,1973,7. Create Password,true,worker-3,OK
+1784184004762,9007,4. Health History,true,worker-2,OK
+1784184007332,18117,5. Checkout,true,worker-7,OK
+1784184008168,34359,2. Basic User Info (reasons + email),true,worker-6,OK
+1784184013345,15159,4. Health History,true,worker-4,OK
+1784184016049,16284,2. Basic User Info (reasons + email),true,worker-5,OK
+1784184016923,19508,1. Landing Page + Add to Cart,true,worker-8,OK
+1784184017494,21913,6. Upload ID,true,worker-9,OK
+1784184028180,10688,1. Landing Page + Add to Cart,true,worker-9,OK
+1784184029198,21859,6. Upload ID,true,worker-7,OK
+1784184030091,13170,1. Landing Page + Add to Cart,true,worker-8,OK
+1784184034702,18652,3. Personal Info,true,worker-5,OK
+1784184034763,30000,5. Checkout,true,worker-2,OK
+1784184037465,24120,5. Checkout,true,worker-4,OK
+1784184040482,11285,1. Landing Page + Add to Cart,true,worker-7,OK
+1784184042843,14663,2. Basic User Info (reasons + email),true,worker-9,OK
+1784184045226,10524,4. Health History,true,worker-5,OK
+1784184045238,10474,6. Upload ID,true,worker-2,OK
+1784184048528,3291,7. Create Password,true,worker-2,OK
+1784184050659,20564,2. Basic User Info (reasons + email),true,worker-8,OK
+1784184052869,10024,3. Personal Info,true,worker-9,OK
+1784184053686,13205,2. Basic User Info (reasons + email),true,worker-7,OK
+1784184055280,47115,1. Landing Page + Add to Cart,true,worker-6,OK
+1784184058374,20908,6. Upload ID,true,worker-4,OK
+1784184061555,7864,3. Personal Info,true,worker-7,OK
+1784184062574,9707,4. Health History,true,worker-9,OK
+1784184062894,4519,7. Create Password,true,worker-4,OK
+1784184063127,17900,5. Checkout,true,worker-5,OK
+1784184065684,4133,4. Health History,true,worker-7,OK
+1784184067148,11866,2. Basic User Info (reasons + email),true,worker-6,OK
+1784184070450,7323,6. Upload ID,true,worker-5,OK
+1784184070680,3532,3. Personal Info,true,worker-6,OK
+1784184071494,1044,7. Create Password,true,worker-5,OK
+1784184073150,10576,5. Checkout,true,worker-9,OK
+1784184074623,3942,4. Health History,true,worker-6,OK
+1784184076013,10328,5. Checkout,true,worker-7,OK
+1784184079872,6721,6. Upload ID,true,worker-9,OK
+1784184080842,969,7. Create Password,true,worker-9,OK
+1784184082784,6771,6. Upload ID,true,worker-7,OK
+1784184084809,2025,7. Create Password,true,worker-7,OK
+1784184086864,12241,5. Checkout,true,worker-6,OK
+1784184093632,6768,6. Upload ID,true,worker-6,OK
+1784184095768,2135,7. Create Password,true,worker-6,OK
+1784184097661,120750,5. Checkout,false,worker-1,Error: locator.click: Test timeout of 180000ms exceeded.

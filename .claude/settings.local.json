@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx playwright *)",
+      "Bash(node debug.js)",
+      "Bash(rm debug.js)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'node|chrome' } | Select-Object Id, ProcessName, StartTime)"
+    ]
+  }
+}

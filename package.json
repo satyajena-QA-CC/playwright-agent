@@ -1,0 +1,19 @@
+{
+  "name": "playwright-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:load": "playwright test --config=load-test/playwright.load.config.js",
+    "test:load:pages": "playwright test --config=load-test/playwright.pages.config.js",
+    "codegen": "playwright codegen"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.0"
+  }
+}
