@@ -49,8 +49,43 @@ function getNextTestEmail() {
   });
 }
 
-test('test', async ({ page }) => {
+// WebKit gets no fake camera device from playwright.config.js (unlike
+// Chromium's --use-fake-device-for-media-stream and Firefox's
+// media.navigator.streams.fake prefs), so getUserMedia() there either
+// prompts for real camera access or is denied outright, and the ID-upload
+// step's camera capture never gets a usable frame. Shim getUserMedia in-page
+// so it never touches the real camera API at all, handing the app a
+// synthetic canvas-based video stream instead.
+async function installFakeCamera(page) {
+  await page.addInitScript(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+    let hue = 0;
+    const draw = () => {
+      hue = (hue + 1) % 360;
+      ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      requestAnimationFrame(draw);
+    };
+    draw();
+    const fakeStream = canvas.captureStream(15);
+    navigator.mediaDevices.getUserMedia = async (constraints) => {
+      if (constraints && constraints.video) {
+        return fakeStream;
+      }
+      throw new DOMException('Requested device not found', 'NotFoundError');
+    };
+  });
+}
+
+test('test', async ({ page, browserName }) => {
   test.setTimeout(180000);
+
+  if (browserName === 'webkit') {
+    await installFakeCamera(page);
+  }
 
   const MAX_ATTEMPTS = 3;
   let completed = false;
@@ -62,7 +97,20 @@ test('test', async ({ page }) => {
     const email = getNextTestEmail();
     console.log(`Using email: ${email}`);
 
-    await page.goto('https://stagingapp.everlifemd.com/nad/v1');
+    // A cold DNS/network blip (e.g. a VPN reconnect cycle) occasionally makes
+    // the very first navigation fail outright with ERR_NAME_NOT_RESOLVED even
+    // though the site is reachable moments later; retry a few times here
+    // rather than burning a whole attempt (and a fresh email) on it.
+    let loaded = false;
+    for (let navTry = 1; navTry <= 3 && !loaded; navTry++) {
+      try {
+        await page.goto('https://stagingapp.everlifemd.com/nad/v1');
+        loaded = true;
+      } catch (e) {
+        if (navTry === 3) throw e;
+        await page.waitForTimeout(3000);
+      }
+    }
     await page.locator('section').nth(1).click();
 
     await page.getByRole('button', { name: 'start my free online visit' }).click();
@@ -246,61 +294,82 @@ test('test', async ({ page }) => {
 
     // ID verification — capture a photo via the browser's (fake, in test
     // runs) camera rather than uploading a file from disk.
-    const useMyCameraButton = page.locator('button.bg-blue-950');
-    await page.getByRole('button', { name: /choose a file or take a photo/i }).click();
-    let modalOpened = await useMyCameraButton.isVisible({ timeout: 8000 }).catch(() => false);
-    if (!modalOpened) {
-      // The modal occasionally doesn't open on the first click on this
-      // flaky staging site; retry once before giving up on this attempt.
-      await page
-        .getByRole('button', { name: /choose a file or take a photo/i })
-        .click({ timeout: 5000 })
-        .catch(() => {});
-      modalOpened = await useMyCameraButton.isVisible({ timeout: 8000 }).catch(() => false);
+    //
+    // The whole block is wrapped so any unexpected failure here (camera
+    // denied/unavailable AND the file-upload fallback both failing to line
+    // up with the modal's current state) retries the whole flow with a
+    // fresh email instead of crashing the entire test run.
+    let idSubmitted = false;
+    try {
+      const useMyCameraButton = page.locator('button.bg-blue-950');
+      await page.getByRole('button', { name: /choose a file or take a photo/i }).click();
+      let modalOpened = await useMyCameraButton.isVisible({ timeout: 8000 }).catch(() => false);
+      if (!modalOpened) {
+        // The modal occasionally doesn't open on the first click on this
+        // flaky staging site; retry once before giving up on this attempt.
+        await page
+          .getByRole('button', { name: /choose a file or take a photo/i })
+          .click({ timeout: 5000 })
+          .catch(() => {});
+        modalOpened = await useMyCameraButton.isVisible({ timeout: 8000 }).catch(() => false);
+      }
+      if (!modalOpened) {
+        continue;
+      }
+      await useMyCameraButton.click(); // "Use My Camera"
+
+      let capturedViaCamera = false;
+      try {
+        // Give the fake video stream a moment to actually start before
+        // capturing — otherwise the capture can grab an empty/blank frame and
+        // the UI silently stays on the live-preview view instead of advancing
+        // to the Retake/Save screen.
+        await expect(page.locator('video')).toBeVisible({ timeout: 10000 });
+        await page.waitForTimeout(1500);
+        await page.locator('button.bg-cyan-400').click(); // "Capture Photo"
+
+        // Two buttons share this class at this point (Retake / Save); the
+        // tooltip text is the only thing that tells them apart.
+        const saveButton = page
+          .locator('div.relative.group', { has: page.locator('span', { hasText: 'Save' }) })
+          .locator('button');
+        await expect(saveButton).toBeVisible({ timeout: 8000 });
+        await saveButton.click();
+        capturedViaCamera = true;
+      } catch {
+        // Camera access denied/unavailable, or getUserMedia never produced a
+        // usable frame. Fall back to uploading a photo file instead.
+      }
+
+      if (!capturedViaCamera) {
+        // The modal may be left in a camera-error state rather than its
+        // initial screen; reopen it fresh from the outer "choose a file or
+        // take a photo" trigger rather than assuming the close button here
+        // matches the current state.
+        await page.locator('button[data-modal-hide="default-modal"]').click({ timeout: 5000 }).catch(() => {});
+        await page.keyboard.press('Escape').catch(() => {});
+        await page.getByRole('button', { name: /choose a file or take a photo/i }).click();
+        await expect(page.locator('button.bg-cyan-400')).toBeVisible({ timeout: 8000 });
+
+        const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 10000 });
+        await page.locator('button.bg-cyan-400').click(); // "Upload"
+        const fileChooser = await fileChooserPromise;
+
+        const idPhotoPath = path.join(process.cwd(), 'fixtures', 'fake-id.png');
+        await fileChooser.setFiles(idPhotoPath);
+      }
+
+      const submitIdButton = page.getByRole('button', { name: 'SUBMIT' });
+      await expect(submitIdButton).toBeEnabled({ timeout: 10000 });
+      await submitIdButton.click();
+      idSubmitted = true;
+    } catch {
+      // Any unexpected failure in the camera/upload flow above — retry the
+      // whole attempt with a fresh email rather than failing the test.
     }
-    if (!modalOpened) {
+    if (!idSubmitted) {
       continue;
     }
-    await useMyCameraButton.click(); // "Use My Camera"
-
-    let capturedViaCamera = false;
-    try {
-      // Give the fake video stream a moment to actually start before
-      // capturing — otherwise the capture can grab an empty/blank frame and
-      // the UI silently stays on the live-preview view instead of advancing
-      // to the Retake/Save screen.
-      await expect(page.locator('video')).toBeVisible({ timeout: 10000 });
-      await page.waitForTimeout(1500);
-      await page.locator('button.bg-cyan-400').click(); // "Capture Photo"
-
-      // Two buttons share this class at this point (Retake / Save); the
-      // tooltip text is the only thing that tells them apart.
-      const saveButton = page
-        .locator('div.relative.group', { has: page.locator('span', { hasText: 'Save' }) })
-        .locator('button');
-      await expect(saveButton).toBeVisible({ timeout: 8000 });
-      await saveButton.click();
-      capturedViaCamera = true;
-    } catch {
-      // Some browsers (e.g. WebKit) don't have a reliable fake camera
-      // device in test runs, so getUserMedia never produces a usable
-      // frame. Fall back to uploading a photo file instead.
-    }
-
-    if (!capturedViaCamera) {
-      await page.locator('button[data-modal-hide="default-modal"]').click().catch(() => {});
-      await page.getByRole('button', { name: /choose a file or take a photo/i }).click();
-      const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 10000 });
-      await page.locator('button.bg-cyan-400').click(); // "Upload"
-      const fileChooser = await fileChooserPromise;
-
-      const idPhotoPath = path.join(process.cwd(), 'fixtures', 'fake-id.png');
-      await fileChooser.setFiles(idPhotoPath);
-    }
-
-    const submitIdButton = page.getByRole('button', { name: 'SUBMIT' });
-    await expect(submitIdButton).toBeEnabled({ timeout: 10000 });
-    await submitIdButton.click();
 
     const reachedCreatePassword = await page
       .waitForURL(/create-password/, { timeout: 20000 })

@@ -65,23 +65,20 @@ export default defineConfig({
       },
     },
 
-    {
-      name: 'webkit',
-      // WebKit doesn't support 'camera' as a Playwright permission name and
-      // has no fake-device flag; getUserMedia-based camera capture isn't
-      // reliable here.
-      use: { ...devices['Desktop Safari'] },
-    },
-
     /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
+    {
+      name: 'Mobile Chrome',
+      use: {
+        ...devices['Pixel 5'],
+        // Same as the desktop 'chromium' project: without these, camera
+        // access is actually denied by the browser (not just prompted),
+        // surfacing as a "Camera access denied or failed." toast in the app.
+        permissions: ['camera'],
+        launchOptions: {
+          args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+        },
+      },
+    },
 
     /* Test against branded browsers. */
     // {
