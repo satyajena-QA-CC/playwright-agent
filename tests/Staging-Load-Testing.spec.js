@@ -226,9 +226,25 @@ async function runCheckoutFlowPerPage(page) {
       await page.locator('#supply_id2').check();
 
       // Billing address via the address-suggestion autocomplete.
-      await page.getByPlaceholder('Billing Address 1').click();
-      await page.getByPlaceholder('Billing Address 1').fill('2441 1/2 3rd Ave');
-      await page.locator('li', { hasText: 'Saint Petersburg' }).first().click();
+      // The suggestion dropdown depends on a third-party geocoding lookup that
+      // is sometimes slow (particularly from CI runners); re-enter the address
+      // a few times with a shorter per-attempt timeout rather than burning the
+      // whole test timeout waiting on one lookup.
+      const addressSuggestion = page.locator('li', { hasText: 'Saint Petersburg' }).first();
+      let suggestionAppeared = false;
+      for (let addrTry = 1; addrTry <= 3 && !suggestionAppeared; addrTry++) {
+        await page.getByPlaceholder('Billing Address 1').click();
+        await page.getByPlaceholder('Billing Address 1').fill('');
+        await page.getByPlaceholder('Billing Address 1').fill('2441 1/2 3rd Ave');
+        suggestionAppeared = await expect(addressSuggestion)
+          .toBeVisible({ timeout: 15000 })
+          .then(() => true)
+          .catch(() => false);
+      }
+      if (!suggestionAppeared) {
+        return false;
+      }
+      await addressSuggestion.click();
 
       // Shipping defaults to "Same as billing address", which is fine.
 
